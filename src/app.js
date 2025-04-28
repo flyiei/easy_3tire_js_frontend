@@ -2,32 +2,54 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [newItem, setNewItem] = useState({ name: '', description: '' });
+  const [nodeItems, setNodeItems] = useState([]);
+  const [springItems, setSpringItems] = useState([]);
+  const [loading, setLoading] = useState({ node: true, spring: true });
+  const [error, setError] = useState({ node: null, spring: null });
+  const [newItem, setNewItem] = useState({ name: '', description: '', api: 'node' });
 
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+  const nodeApiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+  const springApiUrl = process.env.REACT_APP_SPRINGBOOT_API_URL || 'http://localhost:8081';
 
-  // Fetch items from API
+  // Fetch items from Node.js API
   useEffect(() => {
-    const fetchItems = async () => {
+    const fetchNodeItems = async () => {
       try {
-        const response = await fetch(`${apiUrl}/api/items`);
+        const response = await fetch(`${nodeApiUrl}/api/items`);
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
-        setItems(data);
-        setLoading(false);
+        setNodeItems(data);
+        setLoading(prev => ({ ...prev, node: false }));
       } catch (err) {
-        setError(`Failed to fetch items: ${err.message}`);
-        setLoading(false);
+        setError(prev => ({ ...prev, node: `Failed to fetch Node.js items: ${err.message}` }));
+        setLoading(prev => ({ ...prev, node: false }));
       }
     };
 
-    fetchItems();
-  }, [apiUrl]);
+    fetchNodeItems();
+  }, [nodeApiUrl]);
+
+  // Fetch items from Spring Boot API
+  useEffect(() => {
+    const fetchSpringItems = async () => {
+      try {
+        const response = await fetch(`${springApiUrl}/api/spring/items`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        setSpringItems(data);
+        setLoading(prev => ({ ...prev, spring: false }));
+      } catch (err) {
+        setError(prev => ({ ...prev, spring: `Failed to fetch Spring Boot items: ${err.message}` }));
+        setLoading(prev => ({ ...prev, spring: false }));
+      }
+    };
+
+    fetchSpringItems();
+  }, [springApiUrl]);
 
   // Handle input changes
   const handleInputChange = (e) => {
@@ -45,33 +67,50 @@ function App() {
     }
 
     try {
-      const response = await fetch(`${apiUrl}/api/items`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newItem),
-      });
+      let response;
+      const itemData = { name: newItem.name, description: newItem.description };
+      
+      if (newItem.api === 'node') {
+        response = await fetch(`${nodeApiUrl}/api/items`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(itemData),
+        });
+      } else {
+        response = await fetch(`${springApiUrl}/api/spring/items`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(itemData),
+        });
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
       const addedItem = await response.json();
-      setItems([...items, addedItem]);
-      setNewItem({ name: '', description: '' });
+      
+      if (newItem.api === 'node') {
+        setNodeItems([...nodeItems, addedItem]);
+      } else {
+        setSpringItems([...springItems, addedItem]);
+      }
+      
+      setNewItem({ name: '', description: '', api: newItem.api });
     } catch (err) {
-      setError(`Failed to add item: ${err.message}`);
+      setError(prev => ({ ...prev, form: `Failed to add item: ${err.message}` }));
     }
   };
-
-  if (loading) return <div>Loading items...</div>;
-  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Microservices Demo</h1>
+        <h1>Three-Tier Microservices Demo</h1>
+        <p className="subtitle">Showing data from Node.js and Spring Boot APIs</p>
       </header>
       
       <section className="add-item-form">
@@ -97,25 +136,65 @@ function App() {
               onChange={handleInputChange}
             />
           </div>
+          <div>
+            <label htmlFor="api">API Service:</label>
+            <select
+              id="api"
+              name="api"
+              value={newItem.api}
+              onChange={handleInputChange}
+            >
+              <option value="node">Node.js API</option>
+              <option value="spring">Spring Boot API</option>
+            </select>
+          </div>
           <button type="submit">Add Item</button>
         </form>
       </section>
 
-      <section className="items-list">
-        <h2>Items List</h2>
-        {items.length === 0 ? (
-          <p>No items found. Add some!</p>
-        ) : (
-          <ul>
-            {items.map((item) => (
-              <li key={item.id}>
-                <h3>{item.name}</h3>
-                <p>{item.description}</p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <div className="api-sections">
+        <section className="items-list node-api">
+          <h2>Node.js API Items</h2>
+          {loading.node ? (
+            <p>Loading Node.js items...</p>
+          ) : error.node ? (
+            <p>Error: {error.node}</p>
+          ) : nodeItems.length === 0 ? (
+            <p>No Node.js items found. Add some!</p>
+          ) : (
+            <ul>
+              {nodeItems.map((item) => (
+                <li key={item.id} className="node-item">
+                  <h3>{item.name}</h3>
+                  <p>{item.description}</p>
+                  <span className="api-badge node-badge">Node.js</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="items-list spring-api">
+          <h2>Spring Boot API Items</h2>
+          {loading.spring ? (
+            <p>Loading Spring Boot items...</p>
+          ) : error.spring ? (
+            <p>Error: {error.spring}</p>
+          ) : springItems.length === 0 ? (
+            <p>No Spring Boot items found. Add some!</p>
+          ) : (
+            <ul>
+              {springItems.map((item) => (
+                <li key={item.id} className="spring-item">
+                  <h3>{item.name}</h3>
+                  <p>{item.description}</p>
+                  <span className="api-badge spring-badge">Spring</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
