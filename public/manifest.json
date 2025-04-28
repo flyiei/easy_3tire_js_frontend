@@ -1,0 +1,8 @@
+{
+  "short_name": "Three-tier JS App",
+  "name": "Three-tier JavaScript Application",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+} 

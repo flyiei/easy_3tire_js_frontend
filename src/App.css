@@ -1,0 +1,88 @@
+.App {
+  text-align: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.App-header {
+  background-color: #282c34;
+  color: white;
+  padding: 20px;
+  margin-bottom: 30px;
+  border-radius: 5px;
+}
+
+.add-item-form, .items-list {
+  background-color: #f5f5f5;
+  padding: 20px;
+  border-radius: 5px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+form div {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input, textarea {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+li {
+  background-color: white;
+  border-radius: 5px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+p {
+  color: #666;
+} 
